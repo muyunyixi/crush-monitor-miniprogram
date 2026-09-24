@@ -28,5 +28,5 @@
     <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
     <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.3.3 · 识字上传失败时自动检测 Worker 连接。</view>
+  <view class="foot">v0.4.0 · 根据截图文字坐标区分左右消息。</view>
 </view>

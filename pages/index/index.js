@@ -116,15 +116,18 @@ Page({
     }
     this.setData({ processing: true, ocrStatus: `已选择 ${files.length} 张，准备识字…` });
     let succeeded = 0;
+    let pendingUploadPath = '';
     try {
       for (let i = 0; i < files.length; i++) {
         this.setData({ ocrStatus: `识别第 ${i + 1} / ${files.length} 张…` });
         const login = await new Promise((resolve, reject) => wx.login({ success: resolve, fail: reject }));
         if (!login.code) throw new Error('微信登录失败，请重新打开小程序。');
+        pendingUploadPath = files[i].tempFilePath;
         const response = await new Promise((resolve, reject) => wx.uploadFile({
-          url: `${baseUrl}/api/mini/ocr`, filePath: files[i].tempFilePath, name: 'image',
+          url: `${baseUrl}/api/mini/ocr`, filePath: pendingUploadPath, name: 'image',
           formData: { loginCode: login.code }, success: resolve, fail: reject,
         }));
+        pendingUploadPath = '';
         let data;
         try { data = JSON.parse(response.data); } catch { throw new Error('服务器没有返回有效识字结果。'); }
         if (response.statusCode !== 200) throw new Error(data.error || `接口返回 ${response.statusCode}`);
@@ -137,7 +140,22 @@ Page({
       this.setData({ ocrStatus: succeeded ? `识字完成：${succeeded} 张有文字，请在输入框检查、修改。` : '没有识别到文字，请换一张清晰截图。' });
     } catch (error) {
       const message = error.message || error.errMsg || '网络连接失败';
-      this.setData({ ocrStatus: `已识别 ${succeeded} 张，随后失败：${message}` });
+      let diagnosis = '';
+      if (pendingUploadPath && /uploadFile:fail/i.test(message)) {
+        this.setData({ ocrStatus: '识字请求中断，正在检测截图上传链路…' });
+        try {
+          const check = await new Promise((resolve, reject) => wx.uploadFile({
+            url: `${baseUrl}/api/mini/upload-check`, filePath: pendingUploadPath,
+            name: 'image', success: resolve, fail: reject,
+          }));
+          diagnosis = check.statusCode === 200 && JSON.parse(check.data).stage === 'worker-reached'
+            ? '上传链路正常，识字接口请求中断。'
+            : `自检接口返回 ${check.statusCode}，请检查 Worker 最新部署。`;
+        } catch (checkError) {
+          diagnosis = `上传自检也失败：${checkError.errMsg || checkError.message || '连接中断'}。`;
+        }
+      }
+      this.setData({ ocrStatus: `已识别 ${succeeded} 张，随后失败：${message}。${diagnosis}` });
     } finally {
       this.setData({ processing: false });
     }

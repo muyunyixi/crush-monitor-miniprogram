@@ -9,8 +9,8 @@
   </view>
 
   <view class="card">
-    <view class="label">追加聊天记录</view>
-    <textarea class="editor" value="{{draft}}" bindinput="onInput" placeholder="长按此处，粘贴微信多条消息" maxlength="-1" cursor-spacing="24" />
+    <view class="label">聊天记录文字 · 粘贴或识字后校对</view>
+    <textarea class="editor" value="{{draft}}" bindinput="onInput" placeholder="长按粘贴微信多条消息，或从下方导入截图" maxlength="-1" cursor-spacing="24" />
     <view class="small">待添加 {{incomingCount}} 行 · 本机已保存 {{messageCount}} 行</view>
     <button class="primary" bindtap="appendDraft">保存新增记录</button>
   </view>
@@ -21,11 +21,11 @@
   </view>
 
   <view class="card">
-    <view class="label">截图导入通道验证</view>
-    <view class="small">仅从相册选择并预览截图。图片不会上传；这一版还不识别文字。</view>
-    <button class="secondary" bindtap="chooseScreenshot">从相册选一张截图</button>
-    <image wx:if="{{selectedImage}}" class="screenshot" src="{{selectedImage}}" mode="widthFix" />
-    <button wx:if="{{selectedImage}}" class="mini remove" bindtap="clearScreenshot">移除预览</button>
+    <view class="label">多张聊天截图识字验证</view>
+    <view class="small">图片经你的 Worker 转交微信 OCR 识别；结果放入上方文字框供校对，图片不保存在本机对话中。</view>
+    <input class="worker-input" value="{{workerUrl}}" bindinput="onWorkerUrl" placeholder="现有 Worker 地址，例如 https://api.example.com" />
+    <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
+    <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.2.0 · 本机保存，增量追加，截图选取；暂不调用模型或 OCR。</view>
+  <view class="foot">v0.3.0 · 粘贴已验证；本轮验证微信 OCR，多图文字进入校对框。</view>
 </view>

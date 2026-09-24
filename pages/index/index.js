@@ -132,6 +132,7 @@ Page({
     this.setData({ processing: true, ocrStatus: `已选择 ${files.length} 张，准备识字…` });
     let succeeded = 0;
     let uncertain = 0;
+    let coordinateFallback = 0;
     let pendingUploadPath = '';
     try {
       for (let i = 0; i < files.length; i++) {
@@ -161,6 +162,7 @@ Page({
         const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: files[i].tempFilePath, success: resolve, fail: reject }));
         const parsed = parseScreenshot(data.items, info.width, info.height);
         uncertain += parsed.uncertain;
+        if (parsed.fallback) coordinateFallback++;
         if (parsed.unavailable) throw new Error('识字服务没有提供文字坐标，无法可靠区分左右。请换一张清晰截图或粘贴文字。');
         const text = parsed.text.trim();
         if (!text) continue;
@@ -175,7 +177,7 @@ Page({
         if (!this.persist(this.data.chats, this.data.activeId, draft, '')) throw new Error('本机保存空间不足。');
         succeeded++;
       }
-      this.setData({ ocrStatus: succeeded ? `已整理 ${succeeded} 张截图的左右消息${uncertain ? `，其中 ${uncertain} 行待确认发言人` : ''}。请校对文字和分组后保存。` : '没有识别到聊天区文字，请换一张清晰截图。' });
+      this.setData({ ocrStatus: succeeded ? `已整理 ${succeeded} 张截图${coordinateFallback ? `；${coordinateFallback} 张未返回坐标，文字已保留为待确认` : ''}${uncertain ? `，其中 ${uncertain} 行待确认发言人` : ''}。请校对文字和分组后保存。` : '没有识别到聊天区文字，请换一张清晰截图。' });
     } catch (error) {
       const message = error.message || error.errMsg || '网络连接失败';
       let diagnosis = '';

@@ -4,20 +4,20 @@
 
   <view class="card">
     <view class="row"><view class="label">本机对话</view><button class="mini" bindtap="newConversation">＋ 新建对话</button></view>
-    <scroll-view scroll-x="true" class="tabs"><view class="tab-list"><view wx:for="{{chatViews}}" wx:key="id" class="tab {{item.current ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectConversation">{{item.title}} · {{item.count}} 行</view></view></scroll-view>
+    <scroll-view scroll-x="true" class="tabs"><view class="tab-list"><view wx:for="{{chatViews}}" wx:key="id" class="tab {{item.current ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectConversation">{{item.title}} · {{item.count}} 条</view></view></scroll-view>
     <view class="row title-row"><input class="title-input" value="{{title}}" bindinput="onTitle" placeholder="为这段对话起名" /><button class="mini" bindtap="saveTitle">保存名称</button></view>
   </view>
 
   <view class="card">
     <view class="label">聊天记录文字 · 粘贴或识字后校对</view>
     <textarea class="editor" value="{{draft}}" bindinput="onInput" placeholder="长按粘贴微信多条消息，或从下方导入截图" maxlength="-1" cursor-spacing="24" />
-    <view class="small">待添加 {{incomingCount}} 行 · 本机已保存 {{messageCount}} 行</view>
+    <view class="small">待添加 {{incomingCount}} 条消息 · 本机已保存 {{messageCount}} 条</view>
     <button class="primary" bindtap="appendDraft">保存新增记录</button>
   </view>
 
   <view class="card">
     <view class="label">已保存的对话文字</view>
-    <scroll-view scroll-y="true" class="history"><view wx:if="{{!messages.length}}" class="empty">还没有记录。先粘贴聊天文字，再点「保存新增记录」。</view><view wx:for="{{messages}}" wx:key="index" class="line"><text class="line-no">{{index + 1}}</text><text selectable="true">{{item}}</text></view></scroll-view>
+    <scroll-view scroll-y="true" class="history"><view wx:if="{{!messages.length}}" class="empty">还没有记录。先粘贴聊天文字，再点「保存新增记录」。</view><view wx:for="{{messages}}" wx:key="index" class="line"><text class="line-no">{{index + 1}}</text><view><view wx:if="{{item.speaker !== '未分配'}}" class="message-speaker">{{item.speaker}}<text wx:if="{{item.timestamp}}" class="message-time"> · {{item.timestamp}}</text></view><text selectable="true">{{item.text}}</text></view></view></scroll-view>
   </view>
 
   <view class="card">
@@ -28,5 +28,5 @@
     <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
     <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.3.1 · 自动填写后端地址；本轮验证微信 OCR。</view>
+  <view class="foot">v0.3.2 · 按消息保存昵称、时间和正文；本轮验证微信 OCR。</view>
 </view>

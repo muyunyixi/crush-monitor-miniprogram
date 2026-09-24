@@ -3,6 +3,7 @@ const time = '(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}\\s+)?\\d{1,2}:\\d{2}(?::\\d{2})?
 const header = new RegExp(`^(.{1,40}?)\\s+(${time})$`);
 const bracket = new RegExp(`^\\[(${time})\\]\\s*(.{1,40}?)[：:]\\s*(.*)$`);
 const nativeTime = /^\d{4}年\d{1,2}月\d{1,2}日\s+\d{1,2}:\d{2}(?::\d{2})?$/;
+const screenshotLine = /^(.{1,24}?) \[((?:(?:20\d{2}[-/.年])?\d{1,2}[-/.月]\d{1,2}日?\s*)?(?:[01]?\d|2[0-3]):[0-5]\d)\][：:]\s*(.*)$/;
 
 function parseChat(raw) {
   const lines = String(raw || '').replace(/\r\n?/g, '\n').split('\n');
@@ -23,12 +24,14 @@ function parseChat(raw) {
       continue;
     }
     if (!line.trim()) { if (current && current.text) current.text += '\n'; continue; }
+    const screenshot = line.match(screenshotLine);
+    if (screenshot) { push(); current = { speaker: screenshot[1], timestamp: screenshot[2], text: screenshot[3] }; continue; }
     const b = line.match(bracket);
     const h = line.match(header);
     const inline = line.match(/^([^\s：:<>]{1,24})[：:]\s*(.*)$/);
     if (!nativeFormat && b) { push(); current = { speaker: b[2], timestamp: b[1], text: b[3] }; continue; }
     if (!nativeFormat && h) { push(); current = { speaker: h[1], timestamp: h[2], text: '' }; continue; }
-    if (!nativeFormat && inline && !/^https?$/.test(inline[1]) && !/^\d+$/.test(inline[1])) {
+    if (inline && !/^https?$/.test(inline[1]) && !/^\d+$/.test(inline[1])) {
       push(); current = { speaker: inline[1], timestamp: null, text: inline[2] }; continue;
     }
     if (!current || current.speaker === '未分配' && !nativeFormat) {

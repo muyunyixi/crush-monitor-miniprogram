@@ -23,9 +23,10 @@
   <view class="card">
     <view class="label">多张聊天截图识字验证</view>
     <view class="small">图片经你的 Worker 转交微信 OCR 识别；结果放入上方文字框供校对，图片不保存在本机对话中。</view>
-    <input class="worker-input" value="{{workerUrl}}" bindinput="onWorkerUrl" placeholder="现有 Worker 地址，例如 https://api.example.com" />
+    <view class="small">已连接现有 Worker。只有更换后端时才需要修改下方地址：</view>
+    <input class="worker-input" value="{{workerUrl}}" bindinput="onWorkerUrl" placeholder="Worker HTTPS 地址" />
     <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
     <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.3.0 · 粘贴已验证；本轮验证微信 OCR，多图文字进入校对框。</view>
+  <view class="foot">v0.3.1 · 自动填写后端地址；本轮验证微信 OCR。</view>
 </view>

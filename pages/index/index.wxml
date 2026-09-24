@@ -28,5 +28,5 @@
     <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
     <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.3.2 · 按消息保存昵称、时间和正文；本轮验证微信 OCR。</view>
+  <view class="foot">v0.3.3 · 识字上传失败时自动检测 Worker 连接。</view>
 </view>

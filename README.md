@@ -1,4 +1,4 @@
-# Crush Monitor 小程序 · 微信识字验证 v0.3.0
+# Crush Monitor 小程序 · 微信识字验证 v0.3.1
 
 微信真机已经验证：原生输入框长按粘贴可以一次收到多条微信聊天消息，本机对话保存、增量追加、选取截图也已经验证。现在继续验证现有 Cloudflare Worker 调用微信 OCR 的完整流程。
 
@@ -20,7 +20,7 @@
 
 1. 在**现有** Cloudflare Worker 的「Settings → Variables and Secrets」添加 `WECHAT_APP_ID` 和 `WECHAT_APP_SECRET`，其中 `WECHAT_APP_SECRET` 必须设为 Secret。使用与微信开发者工具中相同的小程序 AppID。不要把 AppSecret 发到聊天、写进 GitHub 或小程序源码。
 2. 在微信小程序平台「开发管理 → 开发设置 → 服务器域名」配置现有 Worker 的 HTTPS 自定义域名为 **uploadFile 合法域名**。小程序真机调用前需要该设置；如果手机显示“不在合法域名列表中”，先检查这里。
-3. 小程序「多张聊天截图识字验证」输入 Worker 基础地址，如 `https://api.example.com`，**不要**附加 `/api/mini/ocr`。随后选最多四张相册图片。
+3. 小程序默认连接 `https://crush-monitor-mobile-api.muyunyixi.cloud`，直接选择最多四张相册图片即可。仅更换后端时修改页面内的 Worker 地址，**不要**附加 `/api/mini/ocr`。
 4. Worker 用临时 `wx.login` 代码验证小程序身份，再调用微信 OCR，识别的文字按图片顺序进入上方可编辑输入框。检查文字，必要时修正后再保存进本机对话。每个微信用户每天最多识别 10 张图片；与网页免费分析额度分别计数。
 
 只有微信后台允许此 OCR 接口、Worker 已部署、AppSecret 已配置、域名被允许，并且手机网络能访问 Worker，真机 OCR 才能完成。目前不能用本地模拟代替这项真实验证。

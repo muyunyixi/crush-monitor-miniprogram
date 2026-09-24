@@ -5,6 +5,20 @@ const DEFAULT_WORKER_URL = 'https://crush-monitor-mobile-api.muyunyixi.cloud';
 const { parseChat, normalizeSaved, findNewMessages } = require('./parser');
 const { parseScreenshot } = require('./screenshot-parser');
 
+async function awaitOcrJob(baseUrl, jobId) {
+  for (let attempt = 0; attempt < 26; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 1800));
+    const response = await new Promise((resolve, reject) => wx.request({
+      url: `${baseUrl}/api/mini/ocr-job?id=${encodeURIComponent(jobId)}`,
+      method: 'GET', timeout: 12000, success: resolve, fail: reject,
+    }));
+    const payload = response.data || {};
+    if (response.statusCode !== 200) throw new Error(payload.error || `识字任务查询失败（${response.statusCode}）。`);
+    if (payload.done) return { statusCode: payload.status, data: payload.result || {} };
+  }
+  throw new Error('识字任务等待超时，本次上传可能仍在处理；请稍后再试。');
+}
+
 function newChat() {
   return { id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7), title: '新的对话', messages: [], updatedAt: Date.now() };
 }
@@ -126,13 +140,24 @@ Page({
         if (!login.code) throw new Error('微信登录失败，请重新打开小程序。');
         pendingUploadPath = files[i].tempFilePath;
         const response = await new Promise((resolve, reject) => wx.uploadFile({
-          url: `${baseUrl}/api/mini/ocr`, filePath: pendingUploadPath, name: 'image',
+          url: `${baseUrl}/api/mini/ocr-async`, filePath: pendingUploadPath, name: 'image',
           formData: { loginCode: login.code }, success: resolve, fail: reject,
         }));
         pendingUploadPath = '';
-        let data;
-        try { data = JSON.parse(response.data); } catch { throw new Error('服务器没有返回有效识字结果。'); }
-        if (response.statusCode !== 200) throw new Error(data.error || `接口返回 ${response.statusCode}`);
+        let uploadData;
+        try { uploadData = JSON.parse(response.data); } catch { throw new Error('服务器没有返回有效任务编号。'); }
+        if (response.statusCode !== 200) throw new Error(uploadData.error || `接口返回 ${response.statusCode}`);
+        if (!uploadData.jobId) throw new Error('识字任务没有编号，请检查 Worker 是否更新。');
+        this.setData({ ocrStatus: `图片 ${i + 1} 已上传，正在等待微信识字…` });
+        let result;
+        try { result = await awaitOcrJob(baseUrl, uploadData.jobId); }
+        catch (pollError) {
+          if (/request:fail|url not in domain list|invalid url/i.test(pollError.errMsg || ''))
+            throw new Error('任务查询失败：请将 Worker 域名同时加入小程序后台的 request 合法域名。');
+          throw pollError;
+        }
+        const data = result.data;
+        if (result.statusCode !== 200) throw new Error(data.error || `微信识字返回 ${result.statusCode}`);
         const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: files[i].tempFilePath, success: resolve, fail: reject }));
         const parsed = parseScreenshot(data.items, info.width, info.height);
         uncertain += parsed.uncertain;

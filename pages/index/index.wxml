@@ -1,23 +1,31 @@
 <view class="page">
-  <view class="headline">微信多条消息粘贴验证</view>
-  <view class="hint">在微信聊天中多选至少 3 条不同的文字消息并复制。切回本小程序，长按下方原生输入框，选择“粘贴”。</view>
+  <view class="headline">对话档案 · 可行性验证</view>
+  <view class="hint">在微信多选复制消息，回到这里长按输入框，直接粘贴。追加时也可再次粘贴整段记录。</view>
 
   <view class="card">
-    <view class="label">原生 textarea（不监听或改写粘贴事件）</view>
-    <textarea class="editor" value="{{draft}}" bindinput="onInput" placeholder="长按这里，粘贴微信里多选复制的聊天消息" maxlength="-1" auto-height="false" cursor-spacing="24" show-confirm-bar="false" />
-  </view>
-
-  <view class="card stats">
-    <view>字符数：<text class="number">{{length}}</text></view>
-    <view>非空行：<text class="number">{{lines}}</text></view>
-    <view class="small">记录会自动存到本机；退出小程序后再次打开检查是否保留。</view>
+    <view class="row"><view class="label">本机对话</view><button class="mini" bindtap="newConversation">＋ 新建对话</button></view>
+    <scroll-view scroll-x="true" class="tabs"><view class="tab-list"><view wx:for="{{chatViews}}" wx:key="id" class="tab {{item.current ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectConversation">{{item.title}} · {{item.count}} 行</view></view></scroll-view>
+    <view class="row title-row"><input class="title-input" value="{{title}}" bindinput="onTitle" placeholder="为这段对话起名" /><button class="mini" bindtap="saveTitle">保存名称</button></view>
   </view>
 
   <view class="card">
-    <view class="label">实际收到的完整内容</view>
-    <view class="preview" selectable="true">{{preview}}</view>
+    <view class="label">追加聊天记录</view>
+    <textarea class="editor" value="{{draft}}" bindinput="onInput" placeholder="长按此处，粘贴微信多条消息" maxlength="-1" cursor-spacing="24" />
+    <view class="small">待添加 {{incomingCount}} 行 · 本机已保存 {{messageCount}} 行</view>
+    <button class="primary" bindtap="appendDraft">保存新增记录</button>
   </view>
 
-  <button class="clear" bindtap="clearDraft">清空记录</button>
-  <view class="foot">v0.1.0 · 仅测试粘贴和本机保存，不发送聊天内容、不调用后端或 OCR。</view>
+  <view class="card">
+    <view class="label">已保存的对话文字</view>
+    <scroll-view scroll-y="true" class="history"><view wx:if="{{!messages.length}}" class="empty">还没有记录。先粘贴聊天文字，再点「保存新增记录」。</view><view wx:for="{{messages}}" wx:key="index" class="line"><text class="line-no">{{index + 1}}</text><text selectable="true">{{item}}</text></view></scroll-view>
+  </view>
+
+  <view class="card">
+    <view class="label">截图导入通道验证</view>
+    <view class="small">仅从相册选择并预览截图。图片不会上传；这一版还不识别文字。</view>
+    <button class="secondary" bindtap="chooseScreenshot">从相册选一张截图</button>
+    <image wx:if="{{selectedImage}}" class="screenshot" src="{{selectedImage}}" mode="widthFix" />
+    <button wx:if="{{selectedImage}}" class="mini remove" bindtap="clearScreenshot">移除预览</button>
+  </view>
+  <view class="foot">v0.2.0 · 本机保存，增量追加，截图选取；暂不调用模型或 OCR。</view>
 </view>

@@ -28,5 +28,5 @@
     <button class="secondary" loading="{{processing}}" disabled="{{processing}}" bindtap="chooseScreenshot">从相册选择最多 4 张截图</button>
     <view wx:if="{{ocrStatus}}" class="ocr-status">{{ocrStatus}}</view>
   </view>
-  <view class="foot">v0.4.1 · 截图上传后独立查询识字任务。</view>
+  <view class="foot">v0.4.2 · 兼容微信 OCR 四角坐标。</view>
 </view>

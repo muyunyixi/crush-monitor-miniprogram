@@ -2,21 +2,10 @@ const STORAGE_KEY = 'crush_miniprogram_probe_v2';
 const OLD_DRAFT_KEY = 'paste_probe_draft_v1';
 const WORKER_URL_KEY = 'mini_ocr_worker_url_v1';
 const DEFAULT_WORKER_URL = 'https://crush-monitor-mobile-api.muyunyixi.cloud';
-
-function textLines(text) {
-  return String(text || '').replace(/\r\n?/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
-}
+const { parseChat, normalizeSaved, findNewMessages } = require('./parser');
 
 function newChat() {
   return { id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7), title: '新的对话', messages: [], updatedAt: Date.now() };
-}
-
-function findNewLines(existing, incoming) {
-  if (existing.length <= incoming.length && existing.every((line, i) => line === incoming[i])) return incoming.slice(existing.length);
-  for (let overlap = Math.min(existing.length, incoming.length); overlap > 0; overlap--) {
-    if (existing.slice(-overlap).every((line, i) => line === incoming[i])) return incoming.slice(overlap);
-  }
-  return incoming;
 }
 
 function displayState(chats, activeId, draft, selectedImage) {
@@ -24,7 +13,7 @@ function displayState(chats, activeId, draft, selectedImage) {
   return {
     chats, activeId: active.id, draft, selectedImage: selectedImage || '', title: active.title,
     chatViews: chats.map(chat => ({ id: chat.id, title: chat.title, count: chat.messages.length, current: chat.id === active.id })),
-    messages: active.messages, messageCount: active.messages.length, incomingCount: textLines(draft).length,
+    messages: active.messages, messageCount: active.messages.length, incomingCount: parseChat(draft).length,
   };
 }
 
@@ -35,7 +24,8 @@ Page({
     try {
       const stored = wx.getStorageSync(STORAGE_KEY);
       if (stored && Array.isArray(stored.chats) && stored.chats.length) {
-        this.setData(displayState(stored.chats, stored.activeId, stored.draft || '', ''));
+        const chats = stored.chats.map(chat => ({ ...chat, messages: normalizeSaved(chat.messages || []) }));
+        this.persist(chats, stored.activeId, stored.draft || '', '');
       } else {
         this.setData(displayState([newChat()], '', wx.getStorageSync(OLD_DRAFT_KEY) || '', ''));
       }
@@ -69,19 +59,19 @@ Page({
   },
 
   appendDraft() {
-    const incoming = textLines(this.data.draft);
+    const incoming = parseChat(this.data.draft);
     if (!incoming.length) {
       wx.showToast({ title: '先长按粘贴聊天文字', icon: 'none' });
       return;
     }
     const chat = this.data.chats.find(item => item.id === this.data.activeId);
-    const added = findNewLines(chat.messages, incoming);
+    const added = findNewMessages(chat.messages, incoming);
     if (!added.length) {
       wx.showToast({ title: '这些内容已经保存过', icon: 'none' });
       return;
     }
     const chats = this.data.chats.map(item => item.id === chat.id ? { ...item, messages: item.messages.concat(added), updatedAt: Date.now() } : item);
-    if (this.persist(chats, chat.id, '', this.data.selectedImage)) wx.showToast({ title: `新增 ${added.length} 行`, icon: 'none' });
+    if (this.persist(chats, chat.id, '', this.data.selectedImage)) wx.showToast({ title: `新增 ${added.length} 条消息`, icon: 'none' });
   },
 
   newConversation() {

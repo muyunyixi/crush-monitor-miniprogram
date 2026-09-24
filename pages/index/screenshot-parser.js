@@ -15,8 +15,7 @@ function parseScreenshot(items, imageWidth, imageHeight) {
     return { text: clean(item.text), x: Number(p.x), y: Number(p.y), w: Number(p.width), h: Number(p.height) };
   }).filter(row => row.text && [row.x, row.y, row.w, row.h].every(Number.isFinite) && row.w > 0 && row.h > 0);
   if (!positioned.length) {
-    const raw = (items || []).map(item => clean(item.text)).filter(value => value &&
-      /[\p{L}\p{N}]/u.test(value) && !clock.test(value) && !/^\d+%$/.test(value) && !/^[+…·•<>]+$/.test(value));
+    const raw = (items || []).map(item => clean(item.text)).filter(value => value && !clock.test(value) && !/^\d+%$/.test(value));
     return {
       text: raw.map(value => `待确认：${value}`).join('\n'), title: '', uncertain: raw.length,
       unavailable: !raw.length, fallback: Boolean(raw.length),
@@ -35,7 +34,7 @@ function parseScreenshot(items, imageWidth, imageHeight) {
   let uncertain = 0;
   for (const row of rows) {
     const value = row.text;
-    if (!/[\p{L}\p{N}]/u.test(value) || /^[+…·•<>]+$/.test(value)) continue;
+    if (!value) continue;
     const center = row.x + row.w / 2;
     if (date.test(value) && Math.abs(center - width / 2) < width * .18) { pendingTime = value; continue; }
     let speaker = '';

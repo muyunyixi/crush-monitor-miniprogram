@@ -1,10 +1,10 @@
 {
   "pages": ["pages/index/index"],
   "window": {
-    "navigationBarTitleText": "聊天粘贴验证",
-    "navigationBarBackgroundColor": "#f6f7f9",
+    "navigationBarTitleText": "好感监控器",
+    "navigationBarBackgroundColor": "#f5f5f2",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#f6f7f9"
+    "backgroundColor": "#f5f5f2"
   },
   "style": "v2"
 }

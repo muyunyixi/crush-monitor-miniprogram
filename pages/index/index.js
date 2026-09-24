@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'crush_miniprogram_probe_v2';
 const OLD_DRAFT_KEY = 'paste_probe_draft_v1';
 const WORKER_URL_KEY = 'mini_ocr_worker_url_v1';
+const DEFAULT_WORKER_URL = 'https://crush-monitor-mobile-api.muyunyixi.cloud';
 
 function textLines(text) {
   return String(text || '').replace(/\r\n?/g, '\n').split('\n').map(line => line.trim()).filter(Boolean);
@@ -28,7 +29,7 @@ function displayState(chats, activeId, draft, selectedImage) {
 }
 
 Page({
-  data: { ...displayState([newChat()], '', '', ''), workerUrl: '', ocrStatus: '', processing: false },
+  data: { ...displayState([newChat()], '', '', ''), workerUrl: DEFAULT_WORKER_URL, ocrStatus: '', processing: false },
 
   onLoad() {
     try {
@@ -38,7 +39,7 @@ Page({
       } else {
         this.setData(displayState([newChat()], '', wx.getStorageSync(OLD_DRAFT_KEY) || '', ''));
       }
-      this.setData({ workerUrl: wx.getStorageSync(WORKER_URL_KEY) || '' });
+      this.setData({ workerUrl: wx.getStorageSync(WORKER_URL_KEY) || DEFAULT_WORKER_URL });
     } catch (error) {
       wx.showToast({ title: '本机读取失败', icon: 'none' });
     }

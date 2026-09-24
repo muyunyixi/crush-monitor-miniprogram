@@ -3,6 +3,7 @@ const OLD_DRAFT_KEY = 'paste_probe_draft_v1';
 const WORKER_URL_KEY = 'mini_ocr_worker_url_v1';
 const DEFAULT_WORKER_URL = 'https://crush-monitor-mobile-api.muyunyixi.cloud';
 const { parseChat, normalizeSaved, findNewMessages } = require('./parser');
+const { parseScreenshot } = require('./screenshot-parser');
 
 function newChat() {
   return { id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7), title: '新的对话', messages: [], updatedAt: Date.now() };
@@ -116,6 +117,7 @@ Page({
     }
     this.setData({ processing: true, ocrStatus: `已选择 ${files.length} 张，准备识字…` });
     let succeeded = 0;
+    let uncertain = 0;
     let pendingUploadPath = '';
     try {
       for (let i = 0; i < files.length; i++) {
@@ -131,13 +133,24 @@ Page({
         let data;
         try { data = JSON.parse(response.data); } catch { throw new Error('服务器没有返回有效识字结果。'); }
         if (response.statusCode !== 200) throw new Error(data.error || `接口返回 ${response.statusCode}`);
-        const text = (data.text || '').trim();
+        const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: files[i].tempFilePath, success: resolve, fail: reject }));
+        const parsed = parseScreenshot(data.items, info.width, info.height);
+        uncertain += parsed.uncertain;
+        if (parsed.unavailable) throw new Error('识字服务没有提供文字坐标，无法可靠区分左右。请换一张清晰截图或粘贴文字。');
+        const text = parsed.text.trim();
         if (!text) continue;
+        if (parsed.title) {
+          const current = this.data.chats.find(chat => chat.id === this.data.activeId);
+          if (current && current.title === '新的对话') {
+            const renamed = this.data.chats.map(chat => chat.id === current.id ? { ...chat, title: parsed.title } : chat);
+            this.persist(renamed, this.data.activeId, this.data.draft, '');
+          }
+        }
         const draft = this.data.draft ? `${this.data.draft.replace(/\s+$/, '')}\n${text}` : text;
         if (!this.persist(this.data.chats, this.data.activeId, draft, '')) throw new Error('本机保存空间不足。');
         succeeded++;
       }
-      this.setData({ ocrStatus: succeeded ? `识字完成：${succeeded} 张有文字，请在输入框检查、修改。` : '没有识别到文字，请换一张清晰截图。' });
+      this.setData({ ocrStatus: succeeded ? `已整理 ${succeeded} 张截图的左右消息${uncertain ? `，其中 ${uncertain} 行待确认发言人` : ''}。请校对文字和分组后保存。` : '没有识别到聊天区文字，请换一张清晰截图。' });
     } catch (error) {
       const message = error.message || error.errMsg || '网络连接失败';
       let diagnosis = '';

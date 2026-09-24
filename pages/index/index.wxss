@@ -1,0 +1,13 @@
+.page { box-sizing: border-box; padding: 32rpx 28rpx 60rpx; }
+.headline { font-size: 42rpx; font-weight: 600; margin: 12rpx 0 18rpx; }
+.hint { font-size: 27rpx; line-height: 1.65; color: #616b72; margin-bottom: 28rpx; }
+.card { background: #fff; border-radius: 24rpx; padding: 26rpx; margin-bottom: 22rpx; }
+.label { font-size: 27rpx; font-weight: 600; margin-bottom: 22rpx; }
+.editor { box-sizing: border-box; display: block; width: 100%; height: 380rpx; padding: 16rpx; border: 2rpx solid #d4e0d8; border-radius: 14rpx; line-height: 1.5; font-size: 29rpx; background: #fbfcfb; }
+.stats { line-height: 1.9; }
+.number { font-weight: 600; color: #24835b; }
+.small { color: #757e83; font-size: 24rpx; margin-top: 12rpx; line-height: 1.5; }
+.preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420rpx; overflow-y: auto; line-height: 1.55; font-size: 27rpx; color: #333; }
+.clear { background: #e5f4e9; color: #256644; border-radius: 16rpx; font-size: 28rpx; margin-top: 30rpx; }
+.clear::after { border: none; }
+.foot { color: #899096; font-size: 23rpx; line-height: 1.5; text-align: center; margin-top: 32rpx; }
